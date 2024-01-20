@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Actuators;
 using Unity.MLAgents.Sensors;
+using Unity.VisualScripting;
 
 public class AgentMove : Agent
 {
@@ -14,9 +15,18 @@ public class AgentMove : Agent
     private float explorationReward =-0.1f;// Reward for moving towards goal
     private float inactionPenalty=-0.1f; //Penalty fpr staying still
 
+    private Rigidbody rigidbody;
+
+    public override void Initialize()
+    {
+        rigidbody=GetComponent<Rigidbody>();
+    }
+
     public override void OnEpisodeBegin()
     {
-        transform.localPosition = new Vector3(0f, 0.6f, 0f);
+        transform.localPosition = new Vector3(Random.Range(-8.2f,8.2f), 0.3f, Random.Range(-7.2f,7.2f));
+        target.localPosition=new Vector3(Random.Range(-8.2f,8.2f), 0.3f, Random.Range(-7.2f,7.2f));
+
     }
 
     public override void CollectObservations(VectorSensor sensor)
@@ -29,20 +39,21 @@ public class AgentMove : Agent
     {
         float moveX = actions.ContinuousActions[0];
         float moveY = actions.ContinuousActions[1];
-        float moveSpeed = 2f;
+        float moveSpeed = 4f;
 
-        Vector3 moveDelta = new Vector3(moveX, 0.6f, moveY) * Time.deltaTime * moveSpeed;
+        Vector3 moveDelta = new Vector3(moveX, 0.3f, moveY)*Time.deltaTime*moveSpeed;
+     
 
-        // Add Exploration Reward
-        float distanceToGoal=Vector3.Distance(transform.position,target.position);
-        SetReward(distanceToGoal * explorationReward);
+        // // Add Exploration Reward
+        // float distanceToGoal=Vector3.Distance(transform.position,target.position);
+        // SetReward(distanceToGoal * explorationReward);
 
         transform.localPosition += moveDelta;
 
-        // Penalize Inaction
-        if(Mathf.Abs(moveDelta.magnitude)< 0.01f){
-            SetReward(inactionPenalty);
-        }
+        // // Penalize Inaction
+        // if(Mathf.Abs(moveDelta.magnitude)< 0.01f){
+        //     SetReward(inactionPenalty);
+        // }
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
@@ -56,13 +67,13 @@ public class AgentMove : Agent
     {
         if (other.gameObject.tag == "Goal")
         {
-            SetReward(10f);
+            SetReward(2f);
             floorMeshRenderer.material = winMaterial;
             EndEpisode();
         }
         if (other.gameObject.tag == "Wall")
         {
-            SetReward(-5f);
+            SetReward(-1f);
             floorMeshRenderer.material = loosMaterial;
             EndEpisode();
         }
